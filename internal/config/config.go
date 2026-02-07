@@ -52,7 +52,12 @@ func getConfigFilePath() (string, error) {
 func (c *Config) SetUser(username string) error {
 
 	c.CurrentUserName = username
-	data, err := json.Marshal(c)
+	return write(*c)
+
+}
+
+func write(cfg Config) error {
+	data, err := json.Marshal(cfg)
 	if err != nil {
 		return err
 	}
@@ -65,6 +70,5 @@ func (c *Config) SetUser(username string) error {
 	if err := os.WriteFile(file, data, 0644); err != nil {
 		return err
 	}
-
 	return nil
 }
