@@ -44,7 +44,27 @@ func getConfigFilePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	home := "/" + filePath + configFileName
+	home := filePath + "/" + configFileName
 
 	return home, nil
+}
+
+func (c *Config) SetUser(username string) error {
+
+	c.CurrentUserName = username
+	data, err := json.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	file, err := getConfigFilePath()
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(file, data, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
