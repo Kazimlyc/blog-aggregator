@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
+	"github.com/Kazimlyc/blog-aggregator/internal/config"
+	"github.com/Kazimlyc/blog-aggregator/internal/database"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
-
-	"github.com/Kazimlyc/blog-aggregator/internal/config"
 )
 
 func main() {
@@ -14,15 +16,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	programState := &state{
-		cfg: &cfg,
-	}
-
 	cmds := commands{
 		handlers: make(map[string]func(*state, command) error),
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
 
 	args := os.Args
 	if len(args) < 2 {
@@ -31,8 +30,20 @@ func main() {
 
 	cmdName := args[1]
 	cmdArgs := args[2:]
-	cmd := command{name: cmdName, args: cmdArgs}
+	cmd := command{Name: cmdName, Args: cmdArgs}
 
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	dbQueries := database.New(db)
+
+	programState := &state{
+		db:  dbQueries,
+		cfg: &cfg,
+	}
 	if err := cmds.run(programState, cmd); err != nil {
 		log.Fatal(err)
 	}
