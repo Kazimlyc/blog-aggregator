@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"os"
 
 	"github.com/Kazimlyc/blog-aggregator/internal/config"
 )
@@ -10,18 +11,30 @@ func main() {
 
 	cfg, err := config.Read()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	if err := cfg.SetUser("Kazim"); err != nil {
-		panic(err)
+	programState := &state{
+		cfg: &cfg,
 	}
 
-	cfg2, err := config.Read()
-	if err != nil {
-		panic(err)
+	cmds := commands{
+		handlers: make(map[string]func(*state, command) error),
 	}
 
-	fmt.Println(cfg2)
+	cmds.register("login", handlerLogin)
+
+	args := os.Args
+	if len(args) < 2 {
+		log.Fatal("not enough arguments")
+	}
+
+	cmdName := args[1]
+	cmdArgs := args[2:]
+	cmd := command{name: cmdName, args: cmdArgs}
+
+	if err := cmds.run(programState, cmd); err != nil {
+		log.Fatal(err)
+	}
 
 }
