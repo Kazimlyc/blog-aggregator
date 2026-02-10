@@ -12,6 +12,10 @@ func handlerReset(s *state, cmd command) error {
 		return err
 	}
 
+	err = s.db.DeleteAllFeed(context.Background())
+	if err != nil {
+		return err
+	}
 	fmt.Println("Database reset successfully")
 
 	return nil
