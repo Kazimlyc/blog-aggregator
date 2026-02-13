@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/Kazimlyc/blog-aggregator/internal/config"
@@ -33,4 +34,17 @@ func (c *commands) run(s *state, cmd command) error {
 		return fmt.Errorf("unknown command: %s", cmd.Name)
 	}
 	return handler(s, cmd)
+}
+
+func middlewareLoggedIn(handler func(s *state, cmd command, user database.User) error) func(*state, command) error {
+
+	return func(s *state, cmd command) error {
+		fmt.Printf("Executing command: %s\n", cmd.Name)
+		user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+		if err != nil {
+			return err
+		}
+		return handler(s, cmd, user)
+
+	}
 }
